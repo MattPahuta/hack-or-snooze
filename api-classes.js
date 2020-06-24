@@ -23,7 +23,7 @@ class StoryList {
   // is **not** an instance method. Rather, it is a method that is called on the
   // class directly. Why doesn't it make sense for getStories to be an instance method?
 
-  static async getStories() {
+  static async getStories() { // +++ It's a utility method for the overarching class and doesn't need to be tied directly to various instances of the class
     // query the /stories endpoint (no auth required)
     const response = await axios.get(`${BASE_URL}/stories`);
 
@@ -46,7 +46,21 @@ class StoryList {
   async addStory(user, newStory) {
     // TODO - Implement this functions!
     // this function should return the newly created story so it can be used in
-    // the script.js file where it will be appended to the DOM
+    // the script.js (ui.js) file where it will be appended to the DOM
+    
+    const res = await axios.post(`${BASE_URL}/stories`, { // +++ response variable with await keyword, post to /stories, pass in user credential object
+      token: user.loginToken, // +++ 
+      story: newStory // +++ 
+    });
+
+    // +++ create a Story instance out of the story object returned
+    newStory = new Story(res.data.story);
+    // +++ add the story to the front of the stories array
+    this.stories.unshift(newStory);
+    // +++ also add the story to the front of the user's individual list (ownStories array)
+    this.ownStories.unshift(newStory);
+    // +++ return the newStory
+    return newStory;
   }
 }
 
@@ -79,7 +93,7 @@ class User {
    */
 
   static async create(username, password, name) {
-    const response = await axios.post(`${BASE_URL}/signup`, {
+    const response = await axios.post(`${BASE_URL}/signup`, { // +++ post method because we're adding a new user object
       user: {
         username,
         password,
