@@ -48,13 +48,13 @@ class StoryList {
     // this function should return the newly created story so it can be used in
     // the script.js (ui.js) file where it will be appended to the DOM
     
-    const res = await axios.post(`${BASE_URL}/stories`, { // +++ response variable with await keyword, post to /stories, pass in user credential object
+    const response = await axios.post(`${BASE_URL}/stories`, { // +++ response variable with await keyword, post to /stories, pass in user credential object
       token: user.loginToken, // +++ 
       story: newStory // +++ 
     });
 
     // +++ create a Story instance out of the story object returned
-    newStory = new Story(res.data.story);
+    newStory = new Story(response.data.story);
     // +++ add the story to the front of the stories array
     this.stories.unshift(newStory);
     // +++ also add the story to the front of the user's individual list (ownStories array)
@@ -62,8 +62,20 @@ class StoryList {
     // +++ return the newStory
     return newStory;
   }
-}
+  // +++ Allow logged in users to remove a story
+  async removeStory(user, storyId) {
+    await axios({
+      url: `${BASE_URL}/stories/${storyId}`,
+      method: "DELETE",
+      data: {
+       token: user.loginToken
+      },
+    });
 
+    this.stories = stories.filter(story => story.storyId !== storyId);
+    user.ownStories = user.ownStories.filter(s => s.storyId !== storyId);
+  }
+}
 
 /**
  * The User class to primarily represent the current user.
