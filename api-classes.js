@@ -72,8 +72,8 @@ class StoryList {
       },
     });
 
-    this.stories = stories.filter(story => story.storyId !== storyId);
-    user.ownStories = user.ownStories.filter(s => s.storyId !== storyId);
+    this.stories = stories.filter(story => story.storyId !== storyId); // +++ use filter method to return new array of stories, minus the passed in storyId
+    user.ownStories = user.ownStories.filter(s => s.storyId !== storyId); // +++ filter again for user's own story array, remove passed in storyId
   }
 }
 
