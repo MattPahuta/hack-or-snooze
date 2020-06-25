@@ -112,22 +112,14 @@ class User {
         name
       }
     });
-
     // build a new User instance from the API response
     const newUser = new User(response.data.user);
-
     // attach the token to the newUser instance for convenience
     newUser.loginToken = response.data.token;
-
     return newUser;
   }
 
-  /* Login in user and return user instance.
-
-   * - username: an existing user's username
-   * - password: an existing user's password
-   */
-
+  // Login in user with existing user's username, password. Return user instance.
   static async login(username, password) {
     const response = await axios.post(`${BASE_URL}/login`, {
       user: {
@@ -149,16 +141,13 @@ class User {
     return existingUser;
   }
 
-  /** Get user instance for the logged-in-user.
-   *
+  /* GET request - Get user instance for the logged-in-user.
    * This function uses the token & username to make an API request to get details
-   *   about the user. Then it creates an instance of user with that info.
+   * about the user. Then it creates an instance of user with that info.
    */
-
   static async getLoggedInUser(token, username) {
     // if we don't have user info, return null
     if (!token || !username) return null;
-
     // call the API
     const response = await axios.get(`${BASE_URL}/users/${username}`, {
       params: {
@@ -176,6 +165,27 @@ class User {
     existingUser.favorites = response.data.user.favorites.map(s => new Story(s));
     existingUser.ownStories = response.data.user.stories.map(s => new Story(s));
     return existingUser;
+  }
+  
+  // +++ add a story (based on storyId) to user's array of favorites, return _tggleFavories method with 'POST' httpVerb
+  addFavorite(storyId) {
+    return this._toggleFavorite(storyId, 'POST');
+  }
+  // +++ remove a story (based on storyId) from user's array of favorities, return _tggleFavories method with 'DELETE' httpVerb
+  removeFavorite(storyId) {
+    return this._toggleFavorite(storyId, 'DELETE');
+  }
+  // +++ method to add/delete favorites, pass in storyId and an httpVerb ('POST' or 'DELETE')
+  async _toggleFavorite(storyId, httpVerb) {
+    await axios({
+      url: `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
+      method: httpVerb,
+      data: {
+        token: this.loginToken
+      }
+    });
+
+    
   }
 }
 
