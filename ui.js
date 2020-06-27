@@ -22,6 +22,30 @@ $(async function() {
   
   await checkIfLoggedIn();
 
+  // +++ navbar event listeners 
+  $navbar.on("click", async function(e) {
+    e.preventDefault(); // prevent reload
+    hideElements(); // call hideElements function
+    if (e.target.id === "nav-all") {
+      await generateStories();
+      $allStoriesList.show();
+    } else if (e.target.id === "nav-login") {
+      $loginForm.slideToggle(); // +++ use slideToggle jQuery method to show login/Account screen
+      $createAccountForm.slideToggle();
+    } else if (e.target.id === "nav-submit-story") {
+      $submitForm.slideToggle(); // +++ slideToggle jQuery method to show story submission form
+    } else if (e.target.id === "nav-favorites") {
+      generateFavs(); // call generateFavs function to display user's favs
+    } else if (e.target.id === "nav-my-stories") {
+      generateMyStories();
+    } else if (e.target.id === "nav-user-profile") {
+      $userProfile.slideToggle();
+    } else if (e.target.id === "logout-btn") {
+      localStorage.clear();
+      location.reload();
+    }
+  })
+
   // Event listener for logging in
   // If successfully we will setup the user instance
   $loginForm.on("submit", async function(evt) {
@@ -88,8 +112,8 @@ $(async function() {
         <a class="article-link" href="${newStory.url}" target="a_blank">
           <strong>${newStory.title}</strong>
         </a>
-        <small class="article-author">by ${newStory.author}</small>
         <small class="article-hostname ${hostName}">(${hostName})</small>
+        <small class="article-author">by ${newStory.author}</small>
         <small class="article-username">posted by ${newStory.username}</small>
       </li>
     `);
@@ -98,25 +122,23 @@ $(async function() {
 
   
 
-
+ // +++ Incorporate navLogOut and navLogin handers into greater Navbar hander listener
   // ** Log Out Functionality **
-  $navLogOut.on("click", function() {
-    // empty out local storage
-    localStorage.clear();
-    // refresh the page, clearing memory
-    location.reload();
-  });
+  // $navLogOut.on("click", function() {
+  //   localStorage.clear(); // empty out local storage
+  //   location.reload(); // refresh the page, clearing memory
+  // });
 
   /**
    * Event Handler for Clicking Login
    */
 
-  $navLogin.on("click", function() {
-    // Show the Login and Create Account Forms
-    $loginForm.slideToggle();
-    $createAccountForm.slideToggle();
-    $allStoriesList.toggle();
-  });
+  // $navLogin.on("click", function() {
+  //   // Show the Login and Create Account Forms
+  //   $loginForm.slideToggle();
+  //   $createAccountForm.slideToggle();
+  //   $allStoriesList.toggle();
+  // });
 
   /**
    * Event handler for Navigation to Homepage
@@ -212,7 +234,9 @@ $(async function() {
       $filteredArticles,
       $ownStories,
       $loginForm,
-      $createAccountForm
+      $createAccountForm,
+      $userProfile,
+      $favoritedStories
     ];
     elementsArr.forEach($elem => $elem.hide());
   }
