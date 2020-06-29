@@ -12,6 +12,7 @@ $(async function() {
   // *** confirm IDs on html correct
   const $navbar = $("nav");
   const $navWelcome = $("#nav-welcome");
+  const $mainNavLinks = $(".main-nav-links"); // +++ navbar links for authenticated users
   const $navUserProfile = $("#nav-user-profile");
   const $userProfile = $("#user-profile");
   const $favoritedStories = $("#favorited-articles");
@@ -25,29 +26,36 @@ $(async function() {
   // +++ navbar event listeners 
   $navbar.on("click", async function(e) {
     e.preventDefault(); // prevent reload
-    hideElements(); // call hideElements function
+    // hideElements(); // call hideElements function
+    console.log(e.target)
     if (e.target.id === "nav-all") {
+      console.log(e.target.id)
       await generateStories();
       $allStoriesList.show();
     } else if (e.target.id === "nav-login") {
-      $loginForm.slideToggle(); // +++ use slideToggle jQuery method to show login/Account screen
+      // console.log(e.target.id)
+      $loginForm.slideToggle(); // +++ use slideToggle animation jQuery method to show login/Account screen
       $createAccountForm.slideToggle();
     } else if (e.target.id === "nav-submit-story") {
+      console.log(e.target.id)
       $submitForm.slideToggle(); // +++ slideToggle jQuery method to show story submission form
     } else if (e.target.id === "nav-favorites") {
+      console.log(e.target.id)
       generateFavs(); // call generateFavs function to display user's favs
     } else if (e.target.id === "nav-my-stories") {
+      console.log(e.target.id)
       generateMyStories();
     } else if (e.target.id === "nav-user-profile") {
       $userProfile.slideToggle();
     } else if (e.target.id === "logout-btn") {
+      // console.log(e.target.id)
       localStorage.clear();
       location.reload();
     }
   })
 
-  // Event listener for logging in
-  // If successfully we will setup the user instance
+  // Event listener for logging in - If successfully we will setup the user instance
+  // +++ Slide down login form, displayed after 'login/create user' click
   $loginForm.on("submit", async function(evt) {
     evt.preventDefault(); // no page-refresh on submit
     // grab the username and password
@@ -241,9 +249,14 @@ $(async function() {
     elementsArr.forEach($elem => $elem.hide());
   }
 
+  // +++ show logged-in user navbar
   function showNavForLoggedInUser() {
     $navLogin.hide();
     $navLogOut.show();
+    $userProfile.hide(); // +++ hide the user profile info section
+    $mainNavLinks.toggleClass("hidden"); // +++ toggleClass to display authenticated user nav links
+    // $(".main-nav-links").toggleClass("hidden");
+    $navWelcome.show();
   }
 
   /* simple function to pull the hostname from a URL */
