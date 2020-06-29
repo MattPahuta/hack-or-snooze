@@ -10,13 +10,13 @@ $(async function() {
   const $navLogOut = $("#nav-logout");
   // +++ Added global variables:
   // *** confirm IDs on html correct
-  const $navbar = $("nav");
-  const $navWelcome = $("#nav-welcome");
+  const $navbar = $("nav"); // +++ page nav element
+  const $navWelcome = $("#nav-welcome"); // +++ span element parent to usernam a element
   const $mainNavLinks = $(".main-nav-links"); // +++ navbar links for authenticated users
   const $articlesContainer = $(".articles-container"); // +++ main container for articles
-  const $navUserProfile = $("#nav-user-profile");
-  const $userProfile = $("#user-profile");
-  const $favoritedStories = $("#favorited-articles");
+  const $navUserProfile = $("#nav-user-profile"); // +++ a element to display username
+  const $userProfile = $("#user-profile"); // +++ section element displaying user profile details
+  const $favoritedStories = $("#favorited-articles"); // +++ ul element to append user's favorited stories
 
   // global storyList and currentUser variables
   let storyList = null;
@@ -25,6 +25,7 @@ $(async function() {
   await checkIfLoggedIn();
 
   // +++ navbar event listeners 
+  // +++ Check if these all need to be async or break into multiple click handers - take out if/else ifs....
   $navbar.on("click", async function(e) {
     e.preventDefault(); // prevent reload
     // hideElements(); // call hideElements function
@@ -170,24 +171,21 @@ $(async function() {
     $allStoriesList.show();
   });
 
-  /**
-   * On page load, checks local storage to see if the user is already logged in.
-   * Renders page information accordingly.
-   */
-
+  // Upon page load, check local storage to see if user is already logged in
+  // Render page appropriately
   async function checkIfLoggedIn() {
     // let's see if we're logged in
     const token = localStorage.getItem("token");
     const username = localStorage.getItem("username");
-
     // if there is a token in localStorage, call User.getLoggedInUser
-    //  to get an instance of User with the right details
-    //  this is designed to run once, on page load
+    // to get an instance of User with the right details
+    // this is designed to run once, on page load
     currentUser = await User.getLoggedInUser(token, username);
     await generateStories();
 
-    if (currentUser) {
+    if (currentUser) { // if resolves to true, call functions to render page
       showNavForLoggedInUser();
+      generateProfile();
     }
   }
 
@@ -199,24 +197,28 @@ $(async function() {
     // reset those forms
     $loginForm.trigger("reset");
     $createAccountForm.trigger("reset");
-    // show the stories
-    $allStoriesList.show();
-    // update the navigation bar
-    showNavForLoggedInUser();
+    $allStoriesList.show(); // show stories
+    showNavForLoggedInUser(); // update nav bar for logged in user 
+    syncCurrentUserToLocalStorage(); // sync localStorage
+    generateProfile(); // call generateProfile function
+  }
+
+  // +++ Build user profile based on global user instance
+  // +++ Solution code
+  function generateProfile() {
+    $("#profile-name").text(`Name: ${currentUser.name}`);
+    $("#profile-username").text(`Username: ${currentUser.username}`);
+    $("#profile-account-date").text(`Account Created: ${currentUser.createdAt.slice(0, 10)}`);
+    $navUserProfile.text(`${currentUser.username}`);
   }
 
   /* A rendering function to call the StoryList.getStories static method, 
      which will generate a storyListInstance. Then render it.
   */
-
   async function generateStories() {
-    // get an instance of StoryList
-    const storyListInstance = await StoryList.getStories();
-    // update our global variable
-    storyList = storyListInstance;
-    // empty out that part of the page
-    $allStoriesList.empty();
-
+    const storyListInstance = await StoryList.getStories(); // get an instance of StoryList
+    storyList = storyListInstance; // update our global variable
+    $allStoriesList.empty(); // empty out that part of the page
     // loop through all of our stories and generate HTML for them
     for (let story of storyList.stories) {
       const result = generateStoryHTML(story);
