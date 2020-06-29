@@ -8,11 +8,12 @@ $(async function() {
   const $ownStories = $("#my-articles");
   const $navLogin = $("#nav-login");
   const $navLogOut = $("#nav-logout");
-  // +++ Added variables 
+  // +++ Added global variables:
   // *** confirm IDs on html correct
   const $navbar = $("nav");
   const $navWelcome = $("#nav-welcome");
   const $mainNavLinks = $(".main-nav-links"); // +++ navbar links for authenticated users
+  const $articlesContainer = $(".articles-container"); // +++ main container for articles
   const $navUserProfile = $("#nav-user-profile");
   const $userProfile = $("#user-profile");
   const $favoritedStories = $("#favorited-articles");
@@ -36,6 +37,7 @@ $(async function() {
       // console.log(e.target.id)
       $loginForm.slideToggle(); // +++ use slideToggle animation jQuery method to show login/Account screen
       $createAccountForm.slideToggle();
+      $allStoriesList.hide();
     } else if (e.target.id === "nav-submit-story") {
       console.log(e.target.id)
       $submitForm.slideToggle(); // +++ slideToggle jQuery method to show story submission form
@@ -55,33 +57,27 @@ $(async function() {
   })
 
   // Event listener for logging in - If successfully we will setup the user instance
-  // +++ Slide down login form, displayed after 'login/create user' click
+  // +++ form displayed after 'login/create user' click
   $loginForm.on("submit", async function(evt) {
     evt.preventDefault(); // no page-refresh on submit
     // grab the username and password
     const username = $("#login-username").val();
     const password = $("#login-password").val();
     // call the login static method to build a user instance
-    // +++ Add simple error hanling to check for valid username/password
-    try {
-      const userInstance = await User.login(username, password);
-      // set the global user to the user instance
-      currentUser = userInstance;
-      syncCurrentUserToLocalStorage(); // handle adding current user to local storage
-      loginAndSubmitForm();
-    } catch(err) {
-      alert("You must enter valid user credentials");
-    }
+    const userInstance = await User.login(username, password);
+    // set the global user to the user instance
+    currentUser = userInstance; 
+    syncCurrentUserToLocalStorage(); // handle adding current user to local storage
+    loginAndSubmitForm();
   });
 
   // Event listener for signing up.
   // If successfully we will setup a new user instance
   $createAccountForm.on("submit", async function(evt) {
     evt.preventDefault(); // no page refresh
-    // grab the required fields
-    let name = $("#create-account-name").val();
-    let username = $("#create-account-username").val();
-    let password = $("#create-account-password").val();
+    let name = $("#create-account-name").val(); // detect required value
+    let username = $("#create-account-username").val(); // detect required value
+    let password = $("#create-account-password").val(); // detect required value
     // call the create method, which calls the API and then builds a new user instance
     const newUser = await User.create(username, password, name);
     currentUser = newUser;
@@ -96,8 +92,8 @@ $(async function() {
     const author = $("#author").val();
     const title = $("#title").val();
     const url = $("#url").val();
-    const userName = currentUser.username
-    const hostName = getHostName(url)
+    const userName = currentUser.username;
+    const hostName = getHostName(url);
     // +++ call buildNewStory function
     buildNewStory(author, title, url, userName, hostName);
     // hide and reset story form
@@ -106,7 +102,7 @@ $(async function() {
   })
 
   // +++ generate a new story
-  async function buildNewStory(author, title, url, userName, hostName) {
+  async function buildNewStory(author, title, url, username, hostName) {
     // +++ call addStory method from StoryList class, currentUser and object as arguments
     const newStory = await storyList.addStory(currentUser, {
       title, author, url, username
@@ -128,6 +124,22 @@ $(async function() {
     $allStoriesList.prepend(storyHTML);
   }
 
+  // +++ Listener to favorite/un-favorite stories 
+  $articlesContainer.on("click", ".star", async function (evt) {
+  // $(".articles-container").on("click", ".star", async function (evt) {
+    if (currentUser) {
+      const favTarget = $(evt.target);
+      const favLi = favTarget.closest("li");
+      const storyId = favLi.attr("id");
+      if (favTarget.hasClass("fas")) {
+        await currentUser.removeFavorites(storyId); // await removeFavorites method
+        favTarget.closest("i").toggleClass("fas far");
+      } else {
+        await currentUser.addFavorites(storyId); // await addFavorites method
+        favTarget.closest("i").toggleClass("fas far")
+      }
+    }
+  });
   
 
  // +++ Incorporate navLogOut and navLogin handers into greater Navbar hander listener
@@ -212,16 +224,20 @@ $(async function() {
     }
   }
 
-  /**
-   * A function to render HTML for an individual Story instance
-   */
+  // +++ New Function - verifyStory(story) - error handling to prompt page refresh?
 
-  function generateStoryHTML(story) {
+  // Function to render HTML for an individual Story instance
+  function generateStoryHTML(story, isOwnStory) { // +++ Addd isOwnStory parameter to enable trash can icon user's stories
     let hostName = getHostName(story.url);
-
+    let starType = isFavorite(story) ? "fas" : "far"; // +++ use ternary operator to determine version of fav icon
+    const trashCanIcon = isOwnStory ? `<span class="trash-con"><i class="fas fa-trash-alt"></i></span>` : ""; // +++ ternary to assoc trash icon with isOwnStory
     // render story markup
     const storyMarkup = $(`
       <li id="${story.storyId}">
+      ${trashCanIcon}
+        <span class="star">
+          <i class="${starType} fa-star"></i>
+        </span>
         <a class="article-link" href="${story.url}" target="a_blank">
           <strong>${story.title}</strong>
         </a>
@@ -234,6 +250,38 @@ $(async function() {
     return storyMarkup;
   }
 
+  // rendering function to build user favs list
+  // +++ function from solution code
+  function generateFavs() {
+    $favoritedStories.empty();
+    if (currentUser.favorites.length === 0) { // display message if currentUser's favorites array empty
+      $favoritedStories.append("<h5>No favorites added!</h5>");
+    } else { // else, loop over currentUser's favs array, call generateStoryHTML for each story fav item
+      for (let story of currentUser.favorites) {
+        let favoriteHTML = generateStoryHTML(story, false, true);
+        $favoritedStories.append(favoriteHTML);
+      }
+    }
+    $favoritedStories.show();
+  }
+
+  // rendering function to display all user's posted stories
+  // +++ function from solution code
+  function generateMyStories() {
+    $ownStories.empty();
+    if (currentUser.ownStories.length === 0) { // if user's ownStories array is empty, display message
+      $ownStories.append("<h5>No stories added by user yet!</h5>");
+    } else { // else, loop over ownStories array, call generateStoryHTML, append to page
+      for (let story of currentUser.ownStories) {
+        let ownStoryHTML = generateStoryHTML(story, true);
+        $ownStories.append(ownStoryHTML);
+      }
+    }
+    $ownStories.show();
+  }
+
+
+
   /* hide all elements in elementsArr */
   function hideElements() {
     const elementsArr = [
@@ -244,7 +292,7 @@ $(async function() {
       $loginForm,
       $createAccountForm,
       $userProfile,
-      $favoritedStories
+      $favoritedStories // +++ attend to this for authenticated users, new function?
     ];
     elementsArr.forEach($elem => $elem.hide());
   }
@@ -257,6 +305,17 @@ $(async function() {
     $mainNavLinks.toggleClass("hidden"); // +++ toggleClass to display authenticated user nav links
     // $(".main-nav-links").toggleClass("hidden");
     $navWelcome.show();
+    $allStoriesList.show(); // maybe
+  }
+
+  // +++ function to account for user favorites 
+  // +++ from solution code
+  function isFavorite(story) {
+    let favStoryIds = new Set();
+    if (currentUser) {
+      favStoryIds = new Set(currentUser.favorites.map(obj => obj.storyId));
+    }
+    return favStoryIds.has(story.storyId);
   }
 
   /* simple function to pull the hostname from a URL */

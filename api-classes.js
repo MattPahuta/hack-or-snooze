@@ -1,65 +1,47 @@
 const BASE_URL = "https://hack-or-snooze-v3.herokuapp.com";
 
-/**
- * This class maintains the list of individual Story instances
- *  It also has some methods for fetching, adding, and removing stories
- */
-
+// Class to handle story instances - fetch, add, and remove stories
 class StoryList {
   constructor(stories) {
     this.stories = stories;
   }
 
-  /**
-   * This method is designed to be called to generate a new StoryList.
-   *  It:
-   *  - calls the API
-   *  - builds an array of Story instances
-   *  - makes a single StoryList instance out of that
-   *  - returns the StoryList instance.*
-   */
-
   // TODO: Note the presence of `static` keyword: this indicates that getStories
   // is **not** an instance method. Rather, it is a method that is called on the
   // class directly. Why doesn't it make sense for getStories to be an instance method?
-
+  // call to generate a new story list
+  // call API, build the array of stories, create and return storyList array
   static async getStories() { // +++ It's a utility method for the overarching class and doesn't need to be tied directly to various instances of the class
     // query the /stories endpoint (no auth required)
     const response = await axios.get(`${BASE_URL}/stories`);
-
     // turn the plain old story objects from the API into instances of the Story class
     const stories = response.data.stories.map(story => new Story(story));
-
     // build an instance of our own class using the new array of stories
     const storyList = new StoryList(stories);
     return storyList;
   }
 
-  /**
-   * Method to make a POST request to /stories and add the new story to the list
-   * - user - the current instance of User who will post the story
-   * - newStory - a new story object for the API with title, author, and url
-   *
-   * Returns the new story object
-   */
-
+  // Make a POST request to /stories, add story to front of stories array
+  // Params: user (current instance of user), newStory (story object to send - title, author, url)
+  // Returns the new story object
   async addStory(user, newStory) {
     // TODO - Implement this functions!
     // this function should return the newly created story so it can be used in
     // the script.js (ui.js) file where it will be appended to the DOM
-    
-    const response = await axios.post(`${BASE_URL}/stories`, { // +++ response variable with await keyword, post to /stories, pass in user credential object
-      token: user.loginToken, // +++ 
-      story: newStory // +++ 
+    const userData = { // +++ API required data format
+      token: user.loginToken,
+      story: newStory
+    }
+    const response = await axios({ // +++ response variable with await keyword, post to /stories, pass in userData
+      method: "POST", 
+      url: `${BASE_URL}/stories`,
+      data: userData
     });
-
-    // +++ create a Story instance out of the story object returned
-    newStory = new Story(response.data.story);
-    // +++ add the story to the front of the stories array
-    this.stories.unshift(newStory);
-    // +++ also add the story to the front of the user's individual list (ownStories array)
-    this.ownStories.unshift(newStory);
-    // +++ return the newStory
+    
+    newStory = new Story(response.data.story); // +++ create a Story instance out of the story object returned
+    this.stories.unshift(newStory); // +++ add the story to the front of the stories array
+    user.ownStories.unshift(newStory); // +++ also add the story to the front of the user's individual list (ownStories array)
+    // +++ return the newStory:
     return newStory;
   }
   // +++ Allow logged in users to remove a story
@@ -77,39 +59,26 @@ class StoryList {
   }
 }
 
-/**
- * The User class to primarily represent the current user.
- *  There are helper methods to signup (create), login, and getLoggedInUser
- */
-
+// User class to represent current user - helper methods for signup (create user), login, getLoggedInUser:
 class User {
   constructor(userObj) {
     this.username = userObj.username;
     this.name = userObj.name;
     this.createdAt = userObj.createdAt;
     this.updatedAt = userObj.updatedAt;
-
     // these are all set to defaults, not passed in by the constructor
     this.loginToken = "";
     this.favorites = [];
     this.ownStories = [];
   }
 
-  /* Create and return a new user.
-   *
-   * Makes POST request to API and returns newly-created user.
-   *
-   * - username: a new username
-   * - password: a new password
-   * - name: the user's full name
-   */
-
+  // Create and return new user by making POST request to API
   static async create(username, password, name) {
     const response = await axios.post(`${BASE_URL}/signup`, { // +++ post method because we're adding a new user object
       user: {
-        username,
-        password,
-        name
+        username, // a new username
+        password, // a new password
+        name // the user's full name
       }
     });
     // build a new User instance from the API response
@@ -130,21 +99,17 @@ class User {
 
     // build a new User instance from the API response
     const existingUser = new User(response.data.user);
-
     // instantiate Story instances for the user's favorites and ownStories
     existingUser.favorites = response.data.user.favorites.map(s => new Story(s));
     existingUser.ownStories = response.data.user.stories.map(s => new Story(s));
-
     // attach the token to the newUser instance for convenience
     existingUser.loginToken = response.data.token;
 
     return existingUser;
   }
 
-  /* GET request - Get user instance for the logged-in-user.
-   * This function uses the token & username to make an API request to get details
-   * about the user. Then it creates an instance of user with that info.
-   */
+  // GET request - get user instance for logged-in-user
+  // token and username used for API request, get user details and create instance of user
   static async getLoggedInUser(token, username) {
     // if we don't have user info, return null
     if (!token || !username) return null;
@@ -154,19 +119,35 @@ class User {
         token
       }
     });
-
     // instantiate the user from the API information
     const existingUser = new User(response.data.user);
-
     // attach the token to the newUser instance for convenience
     existingUser.loginToken = token;
-
     // instantiate Story instances for the user's favorites and ownStories
-    existingUser.favorites = response.data.user.favorites.map(s => new Story(s));
-    existingUser.ownStories = response.data.user.stories.map(s => new Story(s));
-    return existingUser;
+    existingUser.favorites = response.data.user.favorites.map((s) => new Story(s));
+    existingUser.ownStories = response.data.user.stories.map((s) => new Story(s));
+    return existingUser; // return existingUser
   }
-  
+
+  // +++ function fetches user info from API
+  // +++ from Solution code
+  async retrieveDetails() {
+    const response = await axios.get(`${BASE_URL}/users/${this.username}`, {
+      params: {
+        token: this.loginToken
+      }
+    });
+
+  // update all of the user's properties from the API resource 
+    this.name = response.data.user.name;
+    this.createdAt = response.data.user.createdAt;
+    this.updatedAt = response.data.user.updatedAt;
+    this.favorites = response.data.user.favorites.map(s => new Story(s));
+    this.ownStories = response.data.user.stories.map(s => new Story(s));
+
+    return this;
+  }
+
   // +++ add a story (based on storyId) to user's array of favorites, return _tggleFavories method with 'POST' httpVerb
   addFavorite(storyId) {
     return this._toggleFavorite(storyId, 'POST');
@@ -185,21 +166,44 @@ class User {
       }
     });
 
-    
+    await this.retrieveDetails();
+    return this;
+  }
+
+  // +++ PATCH request to API - update userData
+  // +++ Solution code
+  async update(userData) {
+    const response = await axios({
+      url: `${BASE_URL}/users/${this.username}`,
+      method: "PATCH",
+      data: {
+        user: userData,
+        token: this.loginToken
+      }
+    });
+
+    // update user's name
+    this.name = response.data.user.name;
+    return this;
+  }
+
+  // +++ DELETE request to API - remove user
+  // +++ Solution code
+  async remove() {
+    await axios({
+      url: `${BASE_URL}/users/${this.username}`,
+      method: "DELETE",
+      data: {
+        token: this.loginToken
+      }
+    });
   }
 }
 
-/**
- * Class to represent a single story.
- */
-
+// Class to represent a single story.
 class Story {
-
-  /**
-   * The constructor is designed to take an object for better readability / flexibility
-   * - storyObj: an object that has story properties in it
-   */
-
+// The constructor is designed to take an object for better readability / flexibility
+// storyObj: an object that has story properties in it
   constructor(storyObj) {
     this.author = storyObj.author;
     this.title = storyObj.title;
@@ -208,5 +212,26 @@ class Story {
     this.storyId = storyObj.storyId;
     this.createdAt = storyObj.createdAt;
     this.updatedAt = storyObj.updatedAt;
+  }
+
+  // +++ from Solution code
+  // +++ PATCH request to API to update a single story, user = instance of User, storyData = object with props to update
+  async update(user, storyData) {
+    const response = await axios({
+      url: `${BASE_URL}/stories/${this.storyId}`,
+      method: "PATCH",
+      data: {
+        token: user.loginToken,
+        story: storyData
+      }
+    });
+
+    const { author, title, url, updatedAt } = response.data.story;
+    this.author = author;
+    this.title = title;
+    this.url = url;
+    this.updatedAt = updatedAt;
+
+    return this;
   }
 }
