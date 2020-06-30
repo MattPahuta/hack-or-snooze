@@ -9,7 +9,6 @@ $(async function() {
   const $navLogin = $("#nav-login");
   const $navLogOut = $("#nav-logout");
   // +++ Added global variables:
-  // *** confirm IDs on html correct
   const $body = $('body'); // +++ page body element
   const $navbar = $("nav"); // +++ page nav element
   const $navWelcome = $("#nav-welcome"); // +++ span element parent to usernam a element
@@ -60,8 +59,8 @@ $(async function() {
 
   // +++ Event listener for story submission form  
   // If successful, will add new story to the list
-  $submitForm.on("submit", async function(e) {
-    e.preventDefault(); 
+  $submitForm.on("submit", async function(evt) {
+    evt.preventDefault(); 
     // get story details and username of submitter 
     const author = $("#author").val();
     const title = $("#title").val();
@@ -93,7 +92,7 @@ $(async function() {
 
   });
 
-  // +++ Navigation Bar Event Handlers - re-worked for clarity +++ // 
+  // +++++++++++++++++++++ Event Handlers ++++++++++++++++++++++++ // 
   // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
   // +++ Event Handler for Clicking Login 
@@ -135,10 +134,9 @@ $(async function() {
   })
 
   // +++ Event Handler for clicking username link on authenticated navbar
-  $navUserProfile.on("click", async () => {
+  $navUserProfile.on("click", () => {
     hideElements(); // +++ call hideElements func to hide other page elements
-    await checkIfLoggedIn(); // +++
-    $userProfile.html(generateProfile()); // call generateProfile to build user profile markup
+    // $userProfile.html(generateProfile()); // call generateProfile to build user profile markup - not needed
     $userProfile.show(); // show user profile details, reveal hidden section
   })
 
@@ -169,8 +167,6 @@ $(async function() {
   });
 
   // Event handler for favorite/un-favorite stories 
-  // $articlesContainer
-  // $('.articles-container')
   $articlesContainer.on("click", ".star", async function (evt) {
     // add variable to hold target element's id attribute
     let storyId = $(evt.target).closest("li").attr("id");
@@ -333,8 +329,6 @@ $(async function() {
   function showNavForLoggedInUser() {
     $navLogin.hide();
     $userProfile.hide(); // +++ hide the user profile info section
-
-    // $mainNavLinks.toggleClass("hidden"); // +++ toggleClass to display authenticated user nav links
     $(".main-nav-links, #user-profile").toggleClass("hidden"); // +++ toggleClass to display authenticated user nav links
     $navWelcome.show();
     $navLogOut.show();
