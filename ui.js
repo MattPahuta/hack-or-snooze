@@ -5,7 +5,7 @@ $(async function() {
   const $filteredArticles = $("#filtered-articles");
   const $loginForm = $("#login-form");
   const $createAccountForm = $("#create-account-form");
-  const $ownStories = $("#my-articles");
+  const $ownStories = $("#my-articles"); // +++ ul element for holding user's posted stories
   const $navLogin = $("#nav-login");
   const $navLogOut = $("#nav-logout");
   // +++ Added global variables:
@@ -13,8 +13,11 @@ $(async function() {
   const $navbar = $("nav"); // +++ page nav element
   const $navWelcome = $("#nav-welcome"); // +++ span element parent to usernam a element
   const $mainNavLinks = $(".main-nav-links"); // +++ navbar links for authenticated users
+  const $navSubmit = $("#nav-submit"); // +++ navbar submit link (a element) for authenticated users
+  const $navFavorites = $("#nav-favorites"); // +++ navbar favorites link (a element) for authenticated users
+  const $navMyStories = $("#nav-my-stories"); // +++ navbar my stories link (a element) for authenticated users
   const $articlesContainer = $(".articles-container"); // +++ main container for articles
-  const $navUserProfile = $("#nav-user-profile"); // +++ a element to display username
+  const $navUserProfile = $("#nav-user-profile"); // +++ authenticated username, link to user profile
   const $userProfile = $("#user-profile"); // +++ section element displaying user profile details
   const $favoritedStories = $("#favorited-articles"); // +++ ul element to append user's favorited stories
 
@@ -23,39 +26,6 @@ $(async function() {
   let currentUser = null;
   
   await checkIfLoggedIn();
-
-  // +++ navbar event listeners 
-  // +++ Check if these all need to be async or break into multiple click handers - take out if/else ifs....
-  $navbar.on("click", async function(e) {
-    e.preventDefault(); // prevent reload
-    // hideElements(); // call hideElements function
-    console.log(e.target)
-    if (e.target.id === "nav-all") {
-      console.log(e.target.id)
-      await generateStories();
-      $allStoriesList.show();
-    } else if (e.target.id === "nav-login") {
-      // console.log(e.target.id)
-      $loginForm.slideToggle(); // +++ use slideToggle animation jQuery method to show login/Account screen
-      $createAccountForm.slideToggle();
-      $allStoriesList.hide();
-    } else if (e.target.id === "nav-submit-story") {
-      console.log(e.target.id)
-      $submitForm.slideToggle(); // +++ slideToggle jQuery method to show story submission form
-    } else if (e.target.id === "nav-favorites") {
-      console.log(e.target.id)
-      generateFavs(); // call generateFavs function to display user's favs
-    } else if (e.target.id === "nav-my-stories") {
-      console.log(e.target.id)
-      generateMyStories();
-    } else if (e.target.id === "nav-user-profile") {
-      $userProfile.slideToggle();
-    } else if (e.target.id === "logout-btn") {
-      // console.log(e.target.id)
-      localStorage.clear();
-      location.reload();
-    }
-  })
 
   // Event listener for logging in - If successfully we will setup the user instance
   // +++ form displayed after 'login/create user' click
@@ -86,7 +56,7 @@ $(async function() {
     loginAndSubmitForm();
   });
 
-  // +++ Add listener for story submission form  
+  // +++ Event listener for story submission form  
   $submitForm.on("submit", function(e) {
     e.preventDefault(); 
     // get story details and username of submitter 
@@ -101,6 +71,71 @@ $(async function() {
     $submitForm.slideUp("slow");
     $submitForm.trigger("reset");
   })
+
+
+  // +++ Navigation Bar Event Handlers - re-worked for clarity +++ // 
+  // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
+
+  // $navbar.on("click", async function(e) {
+  //   e.preventDefault(); // prevent reload
+  //   hideElements(); // call hideElements function
+  //   console.log(e.target)
+  // })
+
+  // +++ Event Handler for Clicking Login 
+  $navLogin.on("click", function(e) { //remove evt arg prior to submit
+    // console.log(e.target.id)
+    $loginForm.slideToggle(); // +++ use slideToggle animation jQuery method to show login/Account screen
+    $createAccountForm.slideToggle();
+    $allStoriesList.toggle();
+  })
+
+  // +++ Event Handler for Clicking Logout
+  $navLogOut.on("click", function(e) { // remove evt arg prior to submit
+    console.log(e.target.id); // remove prior to submit
+    $mainNavLinks.hide();
+    $navUserProfile.text(); // +++ check this - use/function
+    localStorage.clear(); // empty local storage
+    location.reload(); // refresh page, clearing memory
+  })
+
+  // +++ Event Handler for Clicking "submit" link on authenticated navbar
+  $navSubmit.on("click", () => {
+    hideElements($submitForm);
+    $submitForm.slideToggle();
+    $allStoriesList.show();
+  })
+
+  // +++ Event Handler for Clicking "favorites" link on authenticated navbar
+  $navFavorites.on("click", () => {
+    hideElements(); // +++ check this
+    generateFavs(); // call generateFavs function to gather user's fav'd stories
+    $favoritedStories.show(); // show user's fav'd stories, reveal hidden ul
+  })
+
+  // +++ Event Handler for Clicking "my stories" link on authenticated navbar
+  $navMyStories.on("click", () => {
+    hideElements(); // +++ check this
+    generateMyStories(); // call generateMyStories to gather user's posted stories
+    $ownStories.show(); // show user's posted stories, reveal hidden ul
+  })
+
+  // +++ Event Handler for clicking username link on authenticated navbar
+  $navUserProfile.on("click", async () => {
+    hideElements(); // +++ check this
+    await checkIfLoggedIn(); // +++
+    $userProfile.html(generateProfile()); // call generateProfile to build user profile markup
+    $userProfile.show(); // show user profile details, reveal hidden section
+  })
+
+  // Event Handler for Navigation to Homepage 
+  $("body").on("click", "#nav-all", async function() {
+    hideElements();
+    await generateStories();
+    $allStoriesList.show();
+  });
+
+
 
   // +++ generate a new story
   async function buildNewStory(author, title, url, username, hostName) {
@@ -161,15 +196,7 @@ $(async function() {
   //   $allStoriesList.toggle();
   // });
 
-  /**
-   * Event handler for Navigation to Homepage
-   */
 
-  $("body").on("click", "#nav-all", async function() {
-    hideElements();
-    await generateStories();
-    $allStoriesList.show();
-  });
 
   // Upon page load, check local storage to see if user is already logged in
   // Render page appropriately
@@ -307,7 +334,7 @@ $(async function() {
     $mainNavLinks.toggleClass("hidden"); // +++ toggleClass to display authenticated user nav links
     // $(".main-nav-links").toggleClass("hidden");
     $navWelcome.show();
-    $allStoriesList.show(); // maybe
+    $allStoriesList.show(); // +++ maybe
   }
 
   // +++ function to account for user favorites 
