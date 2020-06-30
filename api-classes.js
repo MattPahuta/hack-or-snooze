@@ -46,15 +46,17 @@ class StoryList {
   }
   // +++ Allow logged in users to remove a story
   async removeStory(user, storyId) {
+
     await axios({
       url: `${BASE_URL}/stories/${storyId}`,
       method: "DELETE",
       data: {
-       token: user.loginToken
-      },
+       "token": user.loginToken
+      }
     });
 
-    this.stories = stories.filter(story => story.storyId !== storyId); // +++ use filter method to return new array of stories, minus the passed in storyId
+    this.stories = this.stories.filter(story => story.storyId !== storyId); // +++ use filter method to return new array of stories, minus the passed in storyId
+    
     user.ownStories = user.ownStories.filter(s => s.storyId !== storyId); // +++ filter again for user's own story array, remove passed in storyId
   }
 }
