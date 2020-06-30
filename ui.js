@@ -185,20 +185,6 @@ $(async function() {
 
   });
 
-  // $('.articles-container').on("click", ".star", async function(evt){
-    
-  //   let storyId = $(evt.target).closest("li").attr('id');
-    
-  //   if($(evt.target).hasClass('far')) {
-  //     await currentUser.addFavorite(storyId);
-  //     $(evt.target).removeClass('far').addClass('fas')
-  //   } else {
-  //     await currentUser.removeFavorite(storyId);
-  //     $(evt.target).removeClass('fas').addClass('far')
-  //   }
-  //  })
-
-  
   // Event handler for deleting story from 'my stories'
   $ownStories.on("click", ".trash-can", async function (evt) {
     // add variable to hold target element's id attribute
@@ -208,21 +194,9 @@ $(async function() {
     }
     await storyList.removeStory(currentUser, storyId);
     await generateStories();
-    hideElements;
+    hideElements();
     $allStoriesList.show();
   });
-
-//   $ownStories.on("click", ".trash-can", async function (evt) {
-   
-//     let storyId = $(evt.target).closest("li").attr('id');
-//     if(isFavorite) {
-//       await currentUser.removeFavorite(storyId);
-//     }
-//     await storyList.removeStory(currentUser, storyId);
-//     await generateStories();
-//     hideElements();
-//     $allStoriesList.show();
-//  })
 
 
   // ++++++++++++ Core Page Functions +++++++++++++++++ //
