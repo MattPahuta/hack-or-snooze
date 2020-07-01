@@ -30,16 +30,25 @@ $(async function() {
   // Event listener for logging in - If successfully we will setup the user instance
   // +++ form displayed after 'login/create user' click
   $loginForm.on("submit", async function(evt) {
-    evt.preventDefault(); // no page-refresh on submit
-    // grab the username and password
+    evt.preventDefault(); 
+    // get the username and password from fields
     const username = $("#login-username").val();
     const password = $("#login-password").val();
-    // call the login static method to build a user instance
-    const userInstance = await User.login(username, password);
-    // set the global user to the user instance
-    currentUser = userInstance; 
-    syncCurrentUserToLocalStorage(); // handle adding current user to local storage
-    loginAndSubmitForm();
+    // +++ add try-catch blocks for simple username/password error handling
+    try {
+      // call the login static method to build a user instance
+      const userInstance = await User.login(username, password)
+      // set the global user to the user instance
+      currentUser = userInstance; 
+      syncCurrentUserToLocalStorage(); // handle adding current user to local storage
+      loginAndSubmitForm();
+    }
+    catch(e) {
+      const { data } = e.response;
+      const { message } = data.error;
+      console.log(`The error is: ${message}`) // placeholder error message delivery, enhance with DOM manipulation
+    }
+
   });
 
   // Event listener for signing up.
@@ -50,12 +59,24 @@ $(async function() {
     let name = $("#create-account-name").val(); // detect required value
     let username = $("#create-account-username").val(); // detect required value
     let password = $("#create-account-password").val(); // detect required value
-    // call the create method, which calls the API and then builds a new user instance
-    const newUser = await User.create(username, password, name);
-    currentUser = newUser;
-    syncCurrentUserToLocalStorage(); // handle adding current user to local storage
-    loginAndSubmitForm();
+    // +++ add try-catch blocks to catch duplicate username errors
+    try {
+      // call the create method, which calls the API and then builds a new user instance
+      const newUser = await User.create(username, password, name);
+      currentUser = newUser;
+      syncCurrentUserToLocalStorage(); // handle adding current user to local storage
+      loginAndSubmitForm();
+      console.log(`User ${newUser.username} successfully created`); // debugging
+    }
+    catch(e) {
+      const { data } = e.response;
+      const { message } = data.error;
+      console.log(`The error is: ${message}`); // placeholder error message delivery, enhance with DOM manipulation
+      // console.log(`This working? ${e}`)
+    }
+
   });
+
 
   // +++ Event listener for story submission form  
   // If successful, will add new story to the list
