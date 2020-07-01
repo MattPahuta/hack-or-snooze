@@ -35,14 +35,16 @@ a:hover {
   display: none;
 }
 
-
-
 nav {
   display: flex;
   background-color: #ff6600;
   align-items: center;
   padding: 5px 20px;
   border-radius: 3px 3px 0 0;
+}
+
+#navbar-brand-div {
+  font-weight: bold;
 }
 
 .main-nav-links {
@@ -217,8 +219,47 @@ form > hr {
 @media screen and (max-width: 576px) {
   body {
     margin: 0;
+    width: 100%;
   }
+
+  nav {
+    padding: 5px 5px;
+    flex-direction: column;
+  }
+
+  #navbar-brand-div {
+    font-weight: bold;
+    padding: 10px 0;
+  }
+
+  .nav-right {
+    margin: 10px 0 5px 0;
+  }
+
+  .main-nav-links {
+    align-self: center;
+  }
+  
+  .main-nav-links span {
+    display: none;
+  }
+
+  form input {
+    width: 70%;
+  }
+
+  .articles-list {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .articles-list li {
+    max-width: 95%;
+    padding: 5px 5px 10px 5px;
+  }
+
 }
+
 
 @media screen and (min-width: 992px) {
   body {
