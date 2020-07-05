@@ -4,6 +4,7 @@ html {
 
 body {
   margin: 8px 7.5vw;
+  padding-top: 30px;
 }
 
 h1 {
@@ -35,6 +36,23 @@ a:hover {
 .hidden {
   display: none;
 }
+
+
+/* Alert dialog container */
+#alert {
+  position: absolute;
+  z-index: 1001;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  line-height: 2.4;
+  overflow: hidden;
+  text-align: center;
+  color: #fff;
+  background-color: rgb(207, 21, 58);
+}
+
 
 /* Navigation styles */
 
@@ -222,30 +240,13 @@ form > hr {
   margin: 10px 0;
 }
 
-/* Alert dialog container */
-#alert {
-  position: absolute;
-  z-index: 1001;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  line-height: 2.4;
-  padding: 20px 0;
-  overflow: hidden;
-  text-align: center;
-  color: #fff;
-  background-color: crimson;
-  /* border: 1px solid transparent; */
-}
-
-
 /** responsive queries for tightening things up for mobile. */
 
 @media screen and (max-width: 576px) {
   body {
     margin: 0;
     width: 100%;
+    padding-top: 0;
   }
 
   nav {

@@ -8,9 +8,7 @@ $(async function() {
   const $ownStories = $("#my-articles"); // +++ ul element for holding user's posted stories
   const $navLogin = $("#nav-login");
   const $navLogOut = $("#nav-logout");
-  // +++ Added global variables:
   const $body = $('body'); // +++ page body element
-  const $navbar = $("nav"); // +++ page nav element
   const $alert = $("#alert"); // +++ authentication alert box
   const $navWelcome = $("#nav-welcome"); // +++ span element parent to usernam a element
   const $mainNavLinks = $(".main-nav-links"); // +++ navbar links for authenticated users
@@ -43,15 +41,12 @@ $(async function() {
       currentUser = userInstance; 
       syncCurrentUserToLocalStorage(); // handle adding current user to local storage
       loginAndSubmitForm();
-      alertMessage();
     }
     catch(e) {
       const { data } = e.response;
       const { message } = data.error;
-      console.log(`The error is: ${message}`) // placeholder error message delivery, enhance with DOM manipulation
-      alertMessage(message);
+      alertMessage(message); // call alertMessage function, pass in message
     }
-
   });
 
   // Event listener for signing up.
@@ -69,50 +64,22 @@ $(async function() {
       currentUser = newUser;
       syncCurrentUserToLocalStorage(); // handle adding current user to local storage
       loginAndSubmitForm();
-      console.log(`User ${newUser.username} successfully created`); // debugging
     }
     catch(e) {
       const { data } = e.response;
       const { message } = data.error;
-      console.log(`The error is: ${message}`); // placeholder error message delivery, enhance with DOM manipulation
-      // console.log(`This working? ${e}`)
-      alertMessage(message);
+      alertMessage(message); // call alertMessage function, pass in message
     }
     
   });
 
-
-
-  // +++ Notifications for login / user creation errors +++
-  // const alertMessage = (message) => {
-  //   $alert.style.display("block")
-  //   $alert.slideDown();
-  // }
-
-  // $(".close").on("click", () => {
-  //   console.log('clicked!')
-  //   $("#alert").style.display = "none";
-  // })
-
-  const alertMessage = (message) => {
-    $alert.text(''); // reset message text
-    $alert.removeClass(); // remove hidden class
-
-    // if (type === "success") $alert.addClass('success');
-    // if (type === "warning") $alert.addClass('warning');
-
-    // $alert.stop().slideDown(() => {
-    //   $alert.text(message).delay(2000).slideUp();
-    // });
-    $alert.slideDown("slow", () => {
-      $alert.text(message).delay(2000).slideUp();
+  function alertMessage (message, type) {
+    $alert.slideDown("slow", function(){ // display alert div
+      $alert.text(message).delay(1800).slideUp(); // display error message
     })
+    $alert.text(''); // reset message text
 
   }
-
-  $("#test-btn").on("click", () => {
-    alertMessage("Here's a nifty message!")
-  })
 
   // +++ Event listener for story submission form  
   // If successful, will add new story to the list
@@ -193,7 +160,6 @@ $(async function() {
   // +++ Event Handler for clicking username link on authenticated navbar
   $navUserProfile.on("click", () => {
     hideElements(); // +++ call hideElements func to hide other page elements
-    // $userProfile.html(generateProfile()); // call generateProfile to build user profile markup - not needed
     $userProfile.show(); // show user profile details, reveal hidden section
   })
 
@@ -288,7 +254,6 @@ $(async function() {
   }
 
   // +++ Build user profile based on global user instance
-  // +++ Solution code
   function generateProfile() {
     $("#profile-name").text(`Name: ${currentUser.name}`);
     $("#profile-username").text(`Username: ${currentUser.username}`);
@@ -332,11 +297,10 @@ $(async function() {
       </li>
     `);
 
-    return storyMarkup;
+    return storyMarkup; // return the storyMarkup
   }
 
   // rendering function to build user favs list
-  // +++ function from solution code
   function generateFaves() {
     $favoritedStories.empty();
 
@@ -351,7 +315,6 @@ $(async function() {
   }
 
   // rendering function to display all user's posted stories
-  // +++ function from solution code
   function generateMyStories() {
     $ownStories.empty();
 
@@ -393,7 +356,6 @@ $(async function() {
   }
 
   // +++ function to account for user favorites 
-  // +++ from solution code
   function isFavorite(story) {
     let favStoryIds = new Set();
     if (currentUser) {

@@ -6,12 +6,7 @@ class StoryList {
     this.stories = stories;
   }
 
-  // TODO: Note the presence of `static` keyword: this indicates that getStories
-  // is **not** an instance method. Rather, it is a method that is called on the
-  // class directly. Why doesn't it make sense for getStories to be an instance method?
-  // call to generate a new story list
-  // call API, build the array of stories, create and return storyList array
-  static async getStories() { // +++ It's a utility method for the overarching class and doesn't need to be tied directly to various instances of the class
+  static async getStories() { // +++ utility method to get stories from API, build array of stories, return storyList
     // query the /stories endpoint (no auth required)
     const response = await axios.get(`${BASE_URL}/stories`);
     // turn the plain old story objects from the API into instances of the Story class
@@ -20,14 +15,11 @@ class StoryList {
     const storyList = new StoryList(stories);
     return storyList;
   }
-
   // Make a POST request to /stories, add story to front of stories array
   // Params: user (current instance of user), newStory (story object to send - title, author, url)
   // Returns the new story object
-  async addStory(user, newStory) {
-    // TODO - Implement this functions!
-    // this function should return the newly created story so it can be used in
-    // the script.js (ui.js) file where it will be appended to the DOM
+  async addStory(user, newStory) { 
+    // Function to return created story and facilitate DOM appened (ui.js)
     const userData = { // +++ API required data format
       token: user.loginToken,
       story: newStory
@@ -46,7 +38,7 @@ class StoryList {
   }
   // +++ Allow logged in users to remove a story
   async removeStory(user, storyId) {
-
+    // +++ use DELETE method to remove a story posted by user
     await axios({
       url: `${BASE_URL}/stories/${storyId}`,
       method: "DELETE",
@@ -56,7 +48,6 @@ class StoryList {
     });
 
     this.stories = this.stories.filter(story => story.storyId !== storyId); // +++ use filter method to return new array of stories, minus the passed in storyId
-    
     user.ownStories = user.ownStories.filter(s => s.storyId !== storyId); // +++ filter again for user's own story array, remove passed in storyId
   }
 }
@@ -106,7 +97,7 @@ class User {
     existingUser.ownStories = response.data.user.stories.map(s => new Story(s));
     // attach the token to the newUser instance for convenience
     existingUser.loginToken = response.data.token;
-
+    // +++ return existingUser
     return existingUser;
   }
 
@@ -132,7 +123,6 @@ class User {
   }
 
   // +++ function fetches user info from API
-  // +++ from Solution code
   async retrieveDetails() {
     const response = await axios.get(`${BASE_URL}/users/${this.username}`, {
       params: {
@@ -140,7 +130,7 @@ class User {
       }
     });
 
-  // update all of the user's properties from the API resource 
+    // update all of the user's properties from the API resource 
     this.name = response.data.user.name;
     this.createdAt = response.data.user.createdAt;
     this.updatedAt = response.data.user.updatedAt;
@@ -173,7 +163,6 @@ class User {
   }
 
   // +++ PATCH request to API - update userData
-  // +++ Solution code
   async update(userData) {
     const response = await axios({
       url: `${BASE_URL}/users/${this.username}`,
@@ -183,14 +172,12 @@ class User {
         token: this.loginToken
       }
     });
-
     // update user's name
     this.name = response.data.user.name;
     return this;
   }
 
   // +++ DELETE request to API - remove user
-  // +++ Solution code
   async remove() {
     await axios({
       url: `${BASE_URL}/users/${this.username}`,
@@ -204,8 +191,8 @@ class User {
 
 // Class to represent a single story.
 class Story {
-// The constructor is designed to take an object for better readability / flexibility
-// storyObj: an object that has story properties in it
+  // The constructor is designed to take an object for better readability / flexibility
+  // storyObj: an object that has story properties in it
   constructor(storyObj) {
     this.author = storyObj.author;
     this.title = storyObj.title;
@@ -216,7 +203,6 @@ class Story {
     this.updatedAt = storyObj.updatedAt;
   }
 
-  // +++ from Solution code
   // +++ PATCH request to API to update a single story, user = instance of User, storyData = object with props to update
   async update(user, storyData) {
     const response = await axios({
